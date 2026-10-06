@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baraka Avto AI — Dealership & Rental CRM/ERP</title>
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Marked for Markdown rendering in AI Chat -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.875rem; }
+        .markdown-body th, .markdown-body td { border: 1px solid #334155; padding: 6px 10px; }
+        .markdown-body th { background-color: #1e293b; color: #94a3b8; font-weight: 600; text-align: left; }
+        .markdown-body ul { list-style-type: disc; margin-left: 20px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- TOP NAVBAR -->
+    <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-car-side text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+                    BARAKA AVTO <span class="text-xs bg-indigo-500/20 text-indigo-400 font-semibold px-2 py-0.5 rounded-full border border-indigo-500/30">AI CRM & ERP</span>
+                </h1>
+                <p class="text-xs text-slate-400">Avtosalon va Mashina Arendasi Aqlli Tizimi</p>
+            </div>
+        </div>
+
+        <!-- NAV TABS -->
+        <nav class="hidden md:flex items-center gap-1 bg-slate-800/60 p-1 rounded-xl border border-slate-700/60">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 bg-indigo-600 text-white shadow">
+                <i class="fa-solid fa-chart-pie"></i> Boshqaruv & AI
+            </button>
+            <button onclick="switchTab('inventory')" id="nav-inventory" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition flex items-center gap-2">
+                <i class="fa-solid fa-warehouse"></i> Inventar
+            </button>
+            <button onclick="switchTab('sales')" id="nav-sales" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition flex items-center gap-2">
+                <i class="fa-solid fa-handshake"></i> Sotuv & Nasiya
+            </button>
+            <button onclick="switchTab('rentals')" id="nav-rentals" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition flex items-center gap-2">
+                <i class="fa-solid fa-key"></i> Ijara (Arenda)
+            </button>
+            <button onclick="switchTab('transactions')" id="nav-transactions" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition flex items-center gap-2">
+                <i class="fa-solid fa-receipt"></i> To'lovlar
+            </button>
+            <button onclick="switchTab('debtors')" id="nav-debtors" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white transition flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation"></i> Qarzdorlar
+                <span id="nav-debtor-badge" class="hidden text-xs bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-bold">0</span>
+            </button>
+        </nav>
+
+        <!-- RIGHT QUICK ACTIONS -->
+        <div class="flex items-center gap-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> AI Agent Faol
+            </span>
+            <button onclick="openNewCarModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition font-medium shadow-md shadow-indigo-600/20">
+                <i class="fa-solid fa-plus text-xs"></i> Mashina qo'shish
+            </button>
+            <a href="/docs" target="_blank" class="text-slate-400 hover:text-white text-sm p-2 rounded-lg hover:bg-slate-800 transition" title="Swagger API Documentation">
+                <i class="fa-solid fa-book-open"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN WRAPPER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- ================= TAB 1: EXECUTIVE & AI COPILOT ================= -->
+        <section id="tab-dashboard" class="space-y-6">
+            <!-- 4 CORE KPI CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Joriy Oy Tushumi</span>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                            <i class="fa-solid fa-wallet text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="kpi-month-rev" class="text-2xl font-bold text-white tracking-tight">Yuklanmoqda...</div>
+                        <p class="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                            <span class="text-emerald-400 font-medium"><i class="fa-solid fa-arrow-trend-up"></i> Tushum</span> (Naqd + Bo'lib to'lash + Ijara)
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avtopark & Sotuv</span>
+                        <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                            <i class="fa-solid fa-car text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="kpi-fleet-stats" class="text-2xl font-bold text-white tracking-tight">-- / --</div>
+                        <p class="text-xs text-slate-400 mt-1">
+                            <span id="kpi-fleet-sub" class="text-indigo-400 font-medium">Salonda tayyor: --</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Faol Arendalar</span>
+                        <div class="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                            <i class="fa-solid fa-key text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="kpi-active-rentals" class="text-2xl font-bold text-white tracking-tight">-- ta</div>
+                        <p class="text-xs text-slate-400 mt-1">
+                            <span id="kpi-utilization" class="text-cyan-400 font-medium">Park bandligi: --%</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kechikkan Qarzlar</span>
+                        <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                            <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="kpi-overdue-debt" class="text-2xl font-bold text-rose-400 tracking-tight">--</div>
+                        <p class="text-xs text-slate-400 mt-1 flex items-center justify-between">
+                            <span id="kpi-debtors-count" class="text-rose-400/90 font-medium">-- nafar qarzdor</span>
+                            <button onclick="switchTab('debtors')" class="text-xs text-indigo-400 hover:underline">Ko'rish &rarr;</button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TWO COLUMN: REVENUE CHART & AI COPILOT CHAT -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- CHART SECTION (7 Cols) -->
+                <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="font-bold text-slate-100 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-column text-indigo-400"></i> Oylik Tushumlar Tarkibi
+                            </h2>
+                            <p class="text-xs text-slate-400">Naqd sotuv, bo'lib to'lash yig'imlari va ijara tushumlari nisbati</p>
+                        </div>
+                        <button onclick="loadDashboardAnalytics()" class="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded bg-slate-800 border border-slate-700">
+                            <i class="fa-solid fa-arrows-rotate"></i> Yangilash
+                        </button>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800 grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="bg-slate-800/40 p-2 rounded-xl">
+                            <span class="text-slate-400">Naqd Sotuv</span>
+                            <p id="sub-cash-rev" class="font-bold text-emerald-400 mt-0.5">--</p>
+                        </div>
+                        <div class="bg-slate-800/40 p-2 rounded-xl">
+                            <span class="text-slate-400">Bo'lib To'lash</span>
+                            <p id="sub-inst-rev" class="font-bold text-indigo-400 mt-0.5">--</p>
+                        </div>
+                        <div class="bg-slate-800/40 p-2 rounded-xl">
+                            <span class="text-slate-400">Ijara (Arenda)</span>
+                            <p id="sub-rent-rev" class="font-bold text-cyan-400 mt-0.5">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI COPILOT CHAT CONSOLE (5 Cols) -->
+                <div class="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-2xl flex flex-col h-[460px] shadow-xl overflow-hidden">
+                    <div class="px-4 py-3 bg-slate-800/70 border-b border-slate-700/60 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs shadow-md">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+                                    AI Dealership Copilot
+                                </h3>
+                                <span class="text-[10px] text-emerald-400">Tabiiy tilda ma'lumot qidiruv va tahlil</span>
+                            </div>
+                        </div>
+                        <button onclick="clearChat()" class="text-slate-400 hover:text-slate-200 text-xs" title="Tarixni tozalash">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+
+                    <!-- QUICK ACTION PROMPTS -->
+                    <div class="px-3 py-2 bg-slate-950/40 border-b border-slate-800/60 flex items-center gap-1.5 overflow-x-auto text-[11px] whitespace-nowrap custom-scrollbar">
+                        <button onclick="sendQuickPrompt('Bu oy qancha foyda qildik?')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">
+                            💰 Oylik tushum
+                        </button>
+                        <button onclick="sendQuickPrompt('Kimlarni arendadan qarzi bor?')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">
+                            ⚠️ Qarzdorlar
+                        </button>
+                        <button onclick="sendQuickPrompt('Executive summary hisobotini tayyorla')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">
+                            📊 Executive Summary
+                        </button>
+                        <button onclick="sendQuickPrompt('Salonda qanday mashinalar bor?')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition">
+                            🚗 Mavjud mashinalar
+                        </button>
+                    </div>
+
+                    <!-- CHAT MESSAGES BODY -->
+                    <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 custom-scrollbar text-xs">
+                        <div class="flex gap-2.5 items-start">
+                            <div class="w-6 h-6 rounded-md bg-indigo-600/30 text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="fa-solid fa-robot text-xs"></i>
+                            </div>
+                            <div class="bg-slate-800/90 text-slate-200 p-3 rounded-2xl rounded-tl-sm border border-slate-700/60 leading-relaxed shadow-sm max-w-[90%]">
+                                Assalomu alaykum! Men sizning <strong>AI Boshqaruv Maslahatchisi</strong>ngizman. 
+                                Menga istalgan savolni bering: masalan, <em>"Bu oy qancha foyda qildik?"</em> yoki <em>"Kimlarni arendadan qarzi bor?"</em>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHAT INPUT -->
+                    <form onsubmit="handleChatSubmit(event)" class="p-3 bg-slate-900 border-t border-slate-800 flex gap-2">
+                        <input id="ai-chat-input" type="text" placeholder="AI Agentga savol bering (masalan: Tracker haqida ma'lumot)..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500">
+                        <button type="submit" id="ai-send-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center transition shadow-md shadow-indigo-600/20">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: INVENTORY ================= -->
+        <section id="tab-inventory" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                <div>
+                    <h2 class="font-bold text-lg text-white flex items-center gap-2">
+                        <i class="fa-solid fa-warehouse text-indigo-400"></i> Avtomobillar Inventarizatsiyasi
+                    </h2>
+                    <p class="text-xs text-slate-400">Salondagi, arendaga berilgan va sotilgan barcha avtomobillarning yagona bazasi</p>
+                </div>
+
+                <!-- FILTER BUTTONS -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="filterCars('ALL')" class="car-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white" data-status="ALL">Barchasi</button>
+                    <button onclick="filterCars('Available')" class="car-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700" data-status="Available">🟢 Sotuvda (Available)</button>
+                    <button onclick="filterCars('Rented')" class="car-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700" data-status="Rented">🔑 Arendada (Rented)</button>
+                    <button onclick="filterCars('Sold_Cash')" class="car-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700" data-status="Sold_Cash">💵 Naqd Sotilgan</button>
+                    <button onclick="filterCars('Sold_Installment')" class="car-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700" data-status="Sold_Installment">📑 Bo'lib To'lashda</button>
+                </div>
+            </div>
+
+            <!-- SEARCH BAR -->
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                <input id="inventory-search" oninput="searchCars(this.value)" type="text" placeholder="Model, VIN kod yoki davlat raqami bo'yicha qidirish..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <!-- CARS GRID -->
+            <div id="cars-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamically rendered -->
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: SALES MANAGEMENT ================= -->
+        <section id="tab-sales" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                <div>
+                    <h2 class="font-bold text-lg text-white flex items-center gap-2">
+                        <i class="fa-solid fa-handshake text-indigo-400"></i> Sotuv Bo'limi (Sales Management)
+                    </h2>
+                    <p class="text-xs text-slate-400">Naqd pulga va bo'lib to'lashga (amortizatsiya grafigi bilan) sotuvlarni rasmiylashtirish</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openCashSaleModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-money-bill-wave"></i> Naqd Sotuv
+                    </button>
+                    <button onclick="openInstallmentModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-calendar-days"></i> Bo'lib To'lash
+                    </button>
+                </div>
+            </div>
+
+            <!-- ACTIVE INSTALLMENT CONTRACTS TABLE -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <h3 class="font-semibold text-sm text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-file-contract text-indigo-400"></i> Amaldagi Nasiya va Muddatli To'lov Shartnomalari
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="text-[11px] uppercase bg-slate-800/60 text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="py-3 px-3">Shartnoma №</th>
+                                <th class="py-3 px-3">Mijoz</th>
+                                <th class="py-3 px-3">Avtomobil</th>
+                                <th class="py-3 px-3">Shartnoma Summasi</th>
+                                <th class="py-3 px-3">To'langan</th>
+                                <th class="py-3 px-3">Qoldiq Qarz</th>
+                                <th class="py-3 px-3">Oylik To'lov</th>
+                                <th class="py-3 px-3 text-center">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-contracts-table-body" class="divide-y divide-slate-800">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: RENTAL MANAGEMENT ================= -->
+        <section id="tab-rentals" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                <div>
+                    <h2 class="font-bold text-lg text-white flex items-center gap-2">
+                        <i class="fa-solid fa-key text-cyan-400"></i> Ijara Bo'limi (Rental Management)
+                    </h2>
+                    <p class="text-xs text-slate-400">Arendadagi avtomobillar hisobi, muddatlar va oylik ijara to'lovlari nazorati</p>
+                </div>
+                <button onclick="openRentalModal()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-plus"></i> Yangi Ijara
+                </button>
+            </div>
+
+            <!-- ACTIVE RENTALS TABLE -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <h3 class="font-semibold text-sm text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-clock text-cyan-400"></i> Faol Arendalar va Muddat Qoldig'i
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="text-[11px] uppercase bg-slate-800/60 text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="py-3 px-3">Shartnoma</th>
+                                <th class="py-3 px-3">Mijoz (Telefon)</th>
+                                <th class="py-3 px-3">Avtomobil</th>
+                                <th class="py-3 px-3">Boshlanish / Tugash</th>
+                                <th class="py-3 px-3">Oylik Ijara</th>
+                                <th class="py-3 px-3">Qoldiq Kunlar</th>
+                                <th class="py-3 px-3">Holati</th>
+                                <th class="py-3 px-3 text-center">To'lov</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rentals-table-body" class="divide-y divide-slate-800">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: TRANSACTIONS & DETAILS ================= -->
+        <section id="tab-transactions" class="hidden space-y-6">
+            <!-- PAYMENT REGISTRATION FORM -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-base text-white flex items-center gap-2">
+                            <i class="fa-solid fa-cash-register text-emerald-400"></i> To'lovni Qabul Qilish (Payment Intake)
+                        </h2>
+                        <p class="text-xs text-slate-400">To'lov kiritilgach, avtomobil va mijozning to'liq ma'lumotlari darhol ekranda ochiladi</p>
+                    </div>
+                </div>
+
+                <form onsubmit="handlePaymentSubmit(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="text-[11px] text-slate-400 font-medium">Shartnoma ID</label>
+                        <input id="pay-contract-id" type="text" placeholder="Masalan: CTR-INST-001" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400 font-medium">To'lov Summasi (so'm)</label>
+                        <input id="pay-amount" type="number" placeholder="Masalan: 6860000" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400 font-medium">To'lov Usuli</label>
+                        <select id="pay-method" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 mt-1">
+                            <option value="CLICK">Click</option>
+                            <option value="PAYME">Payme</option>
+                            <option value="UZUM">Uzum Bank</option>
+                            <option value="CASH">Kassa (Naqd)</option>
+                            <option value="BANK_TRANSFER">Bank O'tkazmasi</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-md shadow-emerald-600/20">
+                            <i class="fa-solid fa-check"></i> To'lovni Qayd Etish
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- LEDGER TABLE -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <h3 class="font-semibold text-sm text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-indigo-400"></i> Barcha To'lovlar Jurnali (Financial Ledger)
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="text-[11px] uppercase bg-slate-800/60 text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="py-3 px-3">Tranzaksiya Kodu</th>
+                                <th class="py-3 px-3">Sana</th>
+                                <th class="py-3 px-3">Mijoz</th>
+                                <th class="py-3 px-3">Avtomobil</th>
+                                <th class="py-3 px-3">Kategoriya</th>
+                                <th class="py-3 px-3">Usul</th>
+                                <th class="py-3 px-3 text-right">Summa (so'm)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger-table-body" class="divide-y divide-slate-800">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 6: DEBTORS ================= -->
+        <section id="tab-debtors" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                <div>
+                    <h2 class="font-bold text-lg text-white flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Qarzdorlar Nazorati (Debtor Surveillance)
+                    </h2>
+                    <p class="text-xs text-slate-400">To'lov muddati kechikkan shartnomalar, jarimalar va avtomatlashtirilgan eslatmalar</p>
+                </div>
+                <button onclick="triggerAllReminders()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-3.5 py-2 rounded-lg font-medium flex items-center gap-1.5 transition shadow-lg shadow-rose-600/20">
+                    <i class="fa-solid fa-bell"></i> Barchaga Eslatma Jo'natish
+                </button>
+            </div>
+
+            <!-- DEBTORS CARDS / TABLE -->
+            <div id="debtors-container" class="space-y-3">
+                <!-- Dynamically loaded -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- 1. VEHICLE SNAPSHOT MODAL (REQUIREMENT 4: On Payment or Lookup) -->
+    <div id="modal-vehicle-snapshot" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative">
+            <button onclick="closeModal('modal-vehicle-snapshot')" class="absolute right-5 top-5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <i class="fa-solid fa-circle-check text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-white">To'lov Qayd Etildi & Avtomobil Kartochkasi</h3>
+                    <p class="text-xs text-slate-400">Mijoz balansi va avtomobil statusi yangilandi</p>
+                </div>
+            </div>
+
+            <div id="snapshot-body" class="space-y-4 text-xs text-slate-300">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeModal('modal-vehicle-snapshot')" class="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-xl text-xs font-semibold">
+                    Yopish
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. AMORTIZATION SCHEDULE MODAL -->
+    <div id="modal-schedule" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-3xl w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeModal('modal-schedule')" class="absolute right-5 top-5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="border-b border-slate-800 pb-2">
+                <h3 id="schedule-modal-title" class="font-bold text-base text-white">Oylik To'lovlar Grafigi</h3>
+                <p class="text-xs text-slate-400">Har bir oy bo'yicha to'langan, kutilayotgan va kechikkan to'lovlar holati</p>
+            </div>
+            <div class="max-h-[360px] overflow-y-auto custom-scrollbar">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="text-[11px] uppercase bg-slate-800/80 text-slate-400 sticky top-0">
+                        <tr>
+                            <th class="py-2.5 px-3">№</th>
+                            <th class="py-2.5 px-3">To'lov Sanasi</th>
+                            <th class="py-2.5 px-3">Summa</th>
+                            <th class="py-2.5 px-3">Holati</th>
+                            <th class="py-2.5 px-3">To'langan Sana</th>
+                            <th class="py-2.5 px-3 text-center">Tezkor To'lov</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-table-body" class="divide-y divide-slate-800">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ADD NEW CAR MODAL -->
+    <div id="modal-add-car" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeModal('modal-add-car')" class="absolute right-5 top-5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-base text-white">Yangi Avtomobil Qo'shish</h3>
+                <p class="text-xs text-slate-400">Inventar bazasiga yangi mashina kiritish</p>
+            </div>
+            <form onsubmit="handleAddCarSubmit(event)" class="grid grid-cols-2 gap-3 text-xs">
+                <div class="col-span-2">
+                    <label class="text-slate-400">Model va Pozitsiya</label>
+                    <input id="add-model" type="text" placeholder="Masalan: Chevrolet Cobalt 4-pozitsiya AT" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">Ishlab chiqarilgan yili</label>
+                    <input id="add-year" type="number" value="2024" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">VIN Kod</label>
+                    <input id="add-vin" type="text" placeholder="17 xonali VIN kod" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">Davlat Raqami</label>
+                    <input id="add-plate" type="text" placeholder="01 A 123 AA" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">Rangi</label>
+                    <input id="add-color" type="text" value="Oq" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">Tannarxi ($ USD)</label>
+                    <input id="add-purchase-usd" type="number" value="12000" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">Sotuv Narxi ($ USD)</label>
+                    <input id="add-sale-usd" type="number" value="14000" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">Sotuv Narxi (so'm)</label>
+                    <input id="add-sale-uzs" type="number" value="177800000" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">Oylik Ijara Narxi (so'm)</label>
+                    <input id="add-rent-uzs" type="number" value="7000000" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-slate-400">Rasm Havolasi (URL)</label>
+                    <input id="add-img" type="text" placeholder="https://..." value="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div class="col-span-2 pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-add-car')" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl">Bekor qilish</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl font-semibold">Qo'shish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. CASH SALE MODAL -->
+    <div id="modal-cash-sale" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeModal('modal-cash-sale')" class="absolute right-5 top-5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-base text-white">Naqd Pulga Sotuvni Rasmiylashtirish</h3>
+                <p class="text-xs text-slate-400">To'lov to'liq qabul qilinadi va avtomobil statusi "Sold_Cash" ga o'tadi</p>
+            </div>
+            <form onsubmit="handleCashSaleSubmit(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="text-slate-400">Avtomobilni tanlang</label>
+                    <select id="cash-car-id" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="text-slate-400">Mijoz Ismi-Sharifi</label>
+                    <input id="cash-cust-name" type="text" placeholder="Dilshod Umarov" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">Telefon Raqami</label>
+                    <input id="cash-cust-phone" type="text" placeholder="+998901234567" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-slate-400">To'lov Usuli</label>
+                    <select id="cash-pay-method" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                        <option value="BANK_TRANSFER">Bank O'tkazmasi</option>
+                        <option value="CASH">Kassa (Naqd)</option>
+                        <option value="CLICK">Click</option>
+                        <option value="PAYME">Payme</option>
+                    </select>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-cash-sale')" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl">Bekor qilish</button>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-xl font-semibold">Sotuvni Tasdiqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. INSTALLMENT SALE MODAL -->
+    <div id="modal-installment" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeModal('modal-installment')" class="absolute right-5 top-5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-base text-white">Bo'lib To'lashga Sotuv (Installment)</h3>
+                <p class="text-xs text-slate-400">Boshlang'ich to'lov, ustama foiz va oylik amortizatsiya grafigi shakllanadi</p>
+            </div>
+            <form onsubmit="handleInstallmentSubmit(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="text-slate-400">Avtomobilni tanlang</label>
+                    <select id="inst-car-id" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-slate-400">Mijoz Ismi</label>
+                        <input id="inst-cust-name" type="text" placeholder="Anvar Karimov" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">Telefon</label>
+                        <input id="inst-cust-phone" type="text" placeholder="+998901234567" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-slate-400">Boshlang'ich To'lov (so'm)</label>
+                        <input id="inst-down-payment" type="number" placeholder="50000000" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">Muddat (Oy)</label>
+                        <select id="inst-months" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                            <option value="12">12 oy (1 yil)</option>
+                            <option value="18">18 oy (1.5 yil)</option>
+                            <option value="24" selected>24 oy (2 yil)</option>
+                            <option value="36">36 oy (3 yil)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-installment')" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl">Bekor qilish</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl font-semibold">Shartnoma Yaratish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 6. RENTAL MODAL -->
+    <div id="modal-rental" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeModal('modal-rental')" class="absolute right-5 top-5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-base text-white">Yangi Ijara (Arenda) Rasmiylashtirish</h3>
+                <p class="text-xs text-slate-400">Mashina statusi "Rented" ga o'tadi va ijara muddati hisoblanadi</p>
+            </div>
+            <form onsubmit="handleRentalSubmit(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="text-slate-400">Avtomobilni tanlang</label>
+                    <select id="rent-car-id" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-slate-400">Mijoz Ismi</label>
+                        <input id="rent-cust-name" type="text" placeholder="Sherzod Aliyev" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">Telefon</label>
+                        <input id="rent-cust-phone" type="text" placeholder="+998946661122" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-slate-400">Ijara Muddati (Oy)</label>
+                        <input id="rent-months" type="number" value="1" min="1" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">Garov Depoziti (so'm)</label>
+                        <input id="rent-deposit" type="number" value="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-rental')" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl">Bekor qilish</button>
+                    <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2 rounded-xl font-semibold">Arendaga Berish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
